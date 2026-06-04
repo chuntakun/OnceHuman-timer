@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Theme Dashboard</title>
 
 <style>
 body {
@@ -12,32 +12,34 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+  transition: 0.4s;
 }
 
-/* 暗いオーバーレイ */
+/* オーバーレイ */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(10,12,18,0.75);
+  background: var(--overlay, rgba(10,12,18,0.75));
   z-index: -1;
+  transition: 0.4s;
 }
 
-/* UI */
 .container {
   padding: 20px;
 }
 
 .card {
-  background: rgba(22,26,34,0.85);
+  background: var(--card, rgba(22,26,34,0.85));
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 10px;
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,0.08);
+  transition: 0.4s;
 }
 
-/* 背景設定パネル */
+/* テーマパネル */
 .panel {
   position: fixed;
   bottom: 10px;
@@ -45,12 +47,17 @@ body::before {
   background: rgba(0,0,0,0.6);
   padding: 10px;
   border-radius: 10px;
-  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-input {
-  width: 200px;
-  margin-top: 5px;
+button {
+  cursor: pointer;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  color: #fff;
 }
 </style>
 </head>
@@ -62,47 +69,60 @@ input {
   <div class="card">スカイリッパー：05:10</div>
 </div>
 
-<!-- 背景設定UI -->
+<!-- テーマUI -->
 <div class="panel">
-  <div>背景URL</div>
-  <input id="bgUrl" placeholder="画像URLを貼る">
-  <button onclick="setBgUrl()">適用</button>
-
-  <hr style="opacity:0.2">
-
-  <div>ローカル画像</div>
-  <input type="file" accept="image/*" onchange="setLocalBg(event)">
+  <button onclick="setTheme('dark')">Dark</button>
+  <button onclick="setTheme('cyber')">Cyber</button>
+  <button onclick="setTheme('nature')">Nature</button>
 </div>
 
 <script>
 
-// ===== URL背景 =====
-function setBgUrl(){
-  const url = document.getElementById("bgUrl").value;
-  if(url){
-    document.body.style.backgroundImage = `url('${url}')`;
-    localStorage.setItem("bg", url);
+// ===== テーマ定義 =====
+const themes = {
+
+  dark: {
+    bg: "",
+    overlay: "rgba(10,12,18,0.75)",
+    card: "rgba(22,26,34,0.85)"
+  },
+
+  cyber: {
+    bg: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b",
+    overlay: "rgba(0,0,0,0.65)",
+    card: "rgba(10,15,25,0.9)"
+  },
+
+  nature: {
+    bg: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    overlay: "rgba(0,0,0,0.55)",
+    card: "rgba(20,30,20,0.85)"
   }
-}
+};
 
-// ===== ローカル画像 =====
-function setLocalBg(event){
-  const file = event.target.files[0];
-  const reader = new FileReader();
+// ===== テーマ適用 =====
+function setTheme(name){
 
-  reader.onload = function(e){
-    document.body.style.backgroundImage = `url('${e.target.result}')`;
-    localStorage.setItem("bg", e.target.result);
-  };
+  const t = themes[name];
 
-  reader.readAsDataURL(file);
+  if(!t) return;
+
+  if(t.bg){
+    document.body.style.backgroundImage = `url('${t.bg}')`;
+  } else {
+    document.body.style.backgroundImage = "none";
+    document.body.style.backgroundColor = "#0d0f14";
+  }
+
+  document.documentElement.style.setProperty("--overlay", t.overlay);
+  document.documentElement.style.setProperty("--card", t.card);
+
+  localStorage.setItem("theme", name);
 }
 
 // ===== 復元 =====
-const saved = localStorage.getItem("bg");
-if(saved){
-  document.body.style.backgroundImage = `url('${saved}')`;
-}
+const saved = localStorage.getItem("theme") || "dark";
+setTheme(saved);
 
 </script>
 
