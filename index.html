@@ -2,110 +2,124 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Timer Panel</title>
+<title>Once Human Monitor</title>
 
 <style>
 body {
-  font-family: sans-serif;
-  background: #111;
-  color: #fff;
+  background:#0f0f0f;
+  color:#fff;
+  font-family:sans-serif;
 }
 
-.timer {
-  border: 2px solid #444;
-  padding: 20px;
-  margin: 10px;
-  font-size: 28px;
-  border-radius: 10px;
-  transition: 0.3s;
+.container {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:20px;
 }
 
-/* フラッシュ用 */
-.flash {
-  border-color: #ff0033;
-  box-shadow: 0 0 20px #ff0033;
-  animation: blink 0.6s infinite alternate;
+.card {
+  background:#1c1c1c;
+  padding:15px;
+  border-radius:12px;
+  font-size:20px;
+  transition:0.3s;
+  border:1px solid #333;
+}
+
+/* WARNING */
+.warning {
+  border-color: orange;
+  box-shadow: 0 0 10px orange;
+}
+
+/* URGENT */
+.urgent {
+  border-color: red;
+  box-shadow: 0 0 20px red;
+  animation: blink 0.5s infinite alternate;
 }
 
 @keyframes blink {
-  from { opacity: 1; }
-  to { opacity: 0.4; }
+  from { opacity:1; }
+  to { opacity:0.4; }
 }
 </style>
 </head>
 
 <body>
 
-<div id="list"></div>
+<div class="container" id="app"></div>
 
 <script>
-// ===== 通知許可 =====
+// ===== 通知 =====
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission();
 }
 
-// ===== タイマー設定（ここ増やせる）=====
-const timers = [
-  { name: "重力イベント", minutes: 3 },
-  { name: "アビスコア", minutes: 10 },
-  { name: "デイリー", minutes: 30 }
+// ===== データ =====
+const events = [
+  { id:"gravity", name:"重力イベント", cycleSec:180, last:Date.now() },
+  { id:"abyss", name:"アビスコア", cycleSec:600, last:Date.now() },
+  { id:"daily", name:"デイリー更新", cycleSec:86400, last:Date.now() }
 ];
 
-// 初期化
-const list = document.getElementById("list");
+// ===== UI生成 =====
+const app = document.getElementById("app");
 
-timers.forEach(t => {
-  t.end = Date.now() + t.minutes * 60 * 1000;
-
-  const div = document.createElement("div");
-  div.className = "timer";
-  div.innerHTML = `${t.name}：<span></span>`;
-  t.el = div;
-  list.appendChild(div);
+events.forEach(e => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `${e.name}：<span>--:--</span>`;
+  e.el = card;
+  app.appendChild(card);
 });
 
-// ===== 通知関数 =====
-function notify(title) {
-  if (Notification.permission === "granted") {
-    new Notification(title);
+// ===== 通知制御（1回だけ）=====
+function notify(name){
+  if(Notification.permission === "granted"){
+    new Notification(`${name} が終了`);
   }
 }
 
 // ===== 更新処理 =====
-function update() {
+function update(){
+
   const now = Date.now();
 
-  timers.forEach(t => {
-    const diff = t.end - now;
-    const el = t.el;
+  events.forEach(e => {
 
-    if (diff <= 0) {
-      el.querySelector("span").innerText = "00:00";
-      return;
-    }
+    const elapsed = Math.floor((now - e.last)/1000);
+    const remain = e.cycleSec - (elapsed % e.cycleSec);
 
-    const sec = Math.floor(diff / 1000);
-    const m = String(Math.floor(sec / 60)).padStart(2, "0");
-    const s = String(sec % 60).padStart(2, "0");
+    const m = String(Math.floor(remain/60)).padStart(2,"0");
+    const s = String(remain%60).padStart(2,"0");
 
+    const el = e.el;
     el.querySelector("span").innerText = `${m}:${s}`;
 
-    // ===== 10秒以下でフラッシュ =====
-    if (sec <= 10) {
-      el.classList.add("flash");
+    // ===== 状態判定 =====
+    el.classList.remove("warning","urgent");
+
+    if(remain <= 10){
+      el.classList.add("urgent");
+
+      if(!e.notified){
+        notify(e.name);
+        e.notified = true;
+      }
+
+    } else if(remain <= 60){
+      el.classList.add("warning");
+      e.notified = false;
     } else {
-      el.classList.remove("flash");
+      e.notified = false;
     }
 
-    // ===== 0秒到達時通知（1回だけ）=====
-    if (!t.notified && diff <= 0) {
-      t.notified = true;
-      notify(`${t.name} 終了！`);
-    }
   });
 }
 
-setInterval(update, 200);
+setInterval(update, 500);
 update();
 
 </script>
