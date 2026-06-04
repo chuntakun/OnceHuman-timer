@@ -27,13 +27,11 @@ body {
   border:1px solid #333;
 }
 
-/* WARNING */
 .warning {
   border-color: orange;
   box-shadow: 0 0 10px orange;
 }
 
-/* URGENT */
 .urgent {
   border-color: red;
   box-shadow: 0 0 20px red;
@@ -52,19 +50,60 @@ body {
 <div class="container" id="app"></div>
 
 <script>
+
+// ===== Discord Webhook（ここ入れる）=====
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1511904445624225904/8anaEdoHkCHUtP_mm_RQRD9R7tq8C_W3v59WVVURcoMkwbBbVELKQATv8A_j7dMXgnR6";
+
 // ===== 通知 =====
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission();
 }
 
-// ===== データ =====
-const events = [
-  { id:"gravity", name:"重力イベント", cycleSec:180, last:Date.now() },
-  { id:"abyss", name:"アビスコア", cycleSec:600, last:Date.now() },
-  { id:"daily", name:"デイリー更新", cycleSec:86400, last:Date.now() }
+// ===== データ（初期値）=====
+let events = [
+  { id:"gravity", name:"重力イベント", cycleSec:180 },
+  { id:"abyss", name:"アビスコア", cycleSec:600 },
+  { id:"daily", name:"デイリー更新", cycleSec:86400 }
 ];
 
-// ===== UI生成 =====
+// ===== localStorage読み込み =====
+const saved = localStorage.getItem("oncehuman_monitor_v1");
+if(saved){
+  const parsed = JSON.parse(saved);
+  events = events.map(e => {
+    return {
+      ...e,
+      last: parsed[e.id] || Date.now()
+    };
+  });
+} else {
+  events = events.map(e => ({
+    ...e,
+    last: Date.now()
+  }));
+}
+
+// ===== 保存 =====
+function save(){
+  const data = {};
+  events.forEach(e => {
+    data[e.id] = e.last;
+  });
+  localStorage.setItem("oncehuman_monitor_v1", JSON.stringify(data));
+}
+
+// ===== Discord送信 =====
+function sendDiscord(msg){
+  if(!DISCORD_WEBHOOK || DISCORD_WEBHOOK.includes("ここ")) return;
+
+  fetch(DISCORD_WEBHOOK, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ content: msg })
+  });
+}
+
+// ===== UI =====
 const app = document.getElementById("app");
 
 events.forEach(e => {
@@ -75,22 +114,25 @@ events.forEach(e => {
   app.appendChild(card);
 });
 
-// ===== 通知制御（1回だけ）=====
+// ===== 通知 =====
 function notify(name){
   if(Notification.permission === "granted"){
-    new Notification(`${name} が終了`);
+    new Notification(`${name} 終了`);
   }
 }
 
-// ===== 更新処理 =====
+// ===== 更新 =====
 function update(){
 
   const now = Date.now();
 
+  // 残り時間計算
   events.forEach(e => {
 
     const elapsed = Math.floor((now - e.last)/1000);
     const remain = e.cycleSec - (elapsed % e.cycleSec);
+
+    e.remain = remain;
 
     const m = String(Math.floor(remain/60)).padStart(2,"0");
     const s = String(remain%60).padStart(2,"0");
@@ -98,25 +140,37 @@ function update(){
     const el = e.el;
     el.querySelector("span").innerText = `${m}:${s}`;
 
-    // ===== 状態判定 =====
     el.classList.remove("warning","urgent");
 
+    // ===== URGENT =====
     if(remain <= 10){
+
       el.classList.add("urgent");
 
       if(!e.notified){
         notify(e.name);
+        sendDiscord(`【終了通知】${e.name}`);
         e.notified = true;
       }
 
-    } else if(remain <= 60){
+    }
+    // ===== WARNING =====
+    else if(remain <= 60){
       el.classList.add("warning");
       e.notified = false;
     } else {
       e.notified = false;
     }
-
   });
+
+  // ===== ソート（④）=====
+  events.sort((a,b) => a.remain - b.remain);
+
+  // DOM並び替え
+  events.forEach(e => app.appendChild(e.el));
+
+  // 保存（①）
+  save();
 }
 
 setInterval(update, 500);
