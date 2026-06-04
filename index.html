@@ -8,29 +8,29 @@
 body{
   margin:0;
   font-family:system-ui;
-  color:#dff6ff;
+  color:#e8f6ff;
   background-size:cover;
   background-position:center;
   background-attachment:fixed;
 
-  --overlay:0.75;
+  --overlay:0.6;
   --brightness:1;
 }
 
-/* 背景暗さ（青系） */
+/* 背景レイヤー */
 body::before{
   content:"";
   position:fixed;
   inset:0;
-  background:rgba(0,20,40,var(--overlay));
+  background:rgba(0,0,0,var(--overlay));
   z-index:-1;
-  filter:brightness(var(--brightness));
+  transition:filter .2s ease;
 }
 
 /* ヘッダー */
 .header{
   text-align:center;
-  padding:18px 0 5px;
+  padding:16px 0 6px;
 }
 
 .header h1{
@@ -40,7 +40,7 @@ body::before{
 }
 
 .header h2{
-  margin:5px 0 0;
+  margin:4px 0 0;
   font-size:12px;
   opacity:.6;
   letter-spacing:2px;
@@ -55,76 +55,76 @@ body::before{
 
 /* カード */
 .card{
-  background:rgba(10,25,45,0.7);
+  background:rgba(15,18,25,0.72);
   border-radius:14px;
   padding:14px;
   margin-bottom:10px;
   position:relative;
   overflow:hidden;
-  border:1px solid rgba(120,200,255,0.15);
-  transition:.3s;
+  border:1px solid rgba(255,255,255,0.08);
+  transition:.25s;
 }
 
-/* 波紋（青系） */
+/* 波紋 */
 .ripple{
   position:absolute;
   top:50%;
   left:50%;
   width:10px;
   height:10px;
-  background:rgba(120,200,255,0.15);
+  background:rgba(180,220,255,0.08);
   border-radius:50%;
   transform:translate(-50%,-50%);
   animation:ripple 4s infinite;
 }
 
 @keyframes ripple{
-  0%{width:10px;height:10px;opacity:.5}
+  0%{width:10px;height:10px;opacity:.4}
   100%{width:460px;height:460px;opacity:0}
 }
 
-/* 一番近いタイマー */
+/* 一番近い */
 .big{
-  transform:scale(1.04);
-  border:1px solid rgba(120,220,255,0.8);
-  box-shadow:0 0 18px rgba(120,220,255,0.3);
+  transform:scale(1.03);
+  border:1px solid rgba(160,220,255,0.5);
+  box-shadow:0 0 14px rgba(160,220,255,0.25);
 }
 
-/* 近接アラート（青発光） */
+/* 近い状態 */
 .hot{
-  border:1px solid rgba(0,200,255,0.8);
-  box-shadow:0 0 18px rgba(0,200,255,0.4);
+  border:1px solid rgba(120,200,255,0.35);
+  box-shadow:0 0 14px rgba(120,200,255,0.2);
 }
 
 /* カウンターMAX */
 .max{
-  border:1px solid rgba(0,200,255,0.9);
-  box-shadow:0 0 20px rgba(0,200,255,0.5);
+  border:1px solid rgba(120,200,255,0.7);
+  box-shadow:0 0 18px rgba(120,200,255,0.3);
 }
 
-/* 設定 */
+/* 設定ボタン */
 .settings{
   position:fixed;
   right:15px;
   bottom:15px;
   padding:10px;
-  background:rgba(0,0,0,0.4);
+  background:rgba(0,0,0,0.45);
+  border:1px solid rgba(120,200,255,0.2);
   border-radius:10px;
   cursor:pointer;
-  border:1px solid rgba(120,200,255,0.2);
 }
 
+/* パネル */
 .panel{
   position:fixed;
   top:0;
   right:-340px;
   width:300px;
   height:100%;
-  background:rgba(0,15,30,0.95);
+  background:rgba(0,0,0,0.92);
   padding:15px;
   transition:.3s;
   overflow:auto;
-  border-left:1px solid rgba(120,200,255,0.2);
 }
 
 .panel.open{right:0}
@@ -138,18 +138,18 @@ body::before{
 input{
   width:100%;
   margin-top:6px;
-  background:rgba(0,0,0,0.3);
+  background:rgba(0,0,0,0.2);
   color:#fff;
-  border:1px solid rgba(120,200,255,0.2);
+  border:1px solid rgba(120,200,255,0.15);
 }
 
-/* ボタン */
 button{
   background:rgba(120,200,255,0.1);
-  color:#dff6ff;
   border:1px solid rgba(120,200,255,0.2);
+  color:#e8f6ff;
   padding:6px 10px;
   border-radius:8px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -168,19 +168,24 @@ button{
   <div style="flex:1">
 
     <div class="card" id="h1">
-      空域ハンティング <span>0/12</span>
+      空域ハンティング <span id="v1">0</span>/12
+      <button onclick="add('v1',12)">＋</button>
+      <button onclick="sub('v1')">−</button>
     </div>
 
     <div class="card" id="r1">
-      スカイリッパー遺物 <span>0/10</span>
+      スカイリッパー遺物 <span id="v2">0</span>/10
+      <button onclick="add('v2',10)">＋</button>
+      <button onclick="sub('v2')">−</button>
     </div>
 
     <div class="card" id="s1">
-      スターコーリング <span>0/5</span>
+      スターコーリング <span id="v3">0</span>/5
+      <button onclick="add('v3',5)">＋</button>
+      <button onclick="sub('v3')">−</button>
     </div>
 
   </div>
-
 </div>
 
 <div class="settings" onclick="toggle()">⚙</div>
@@ -193,6 +198,9 @@ button{
   <input id="bg">
   <button onclick="setBg()">適用</button>
 
+  <div class="section">ランダム背景</div>
+  <button onclick="randomBg()">ランダム</button>
+
   <div class="section">ローカル背景</div>
   <input type="file" onchange="local(event)">
 
@@ -201,31 +209,53 @@ button{
     oninput="setOpacity(this.value)">
 
   <div class="section">明るさ</div>
-  <input type="range" min="0.5" max="1.5" step="0.01"
+  <input type="range" min="0.6" max="1.4" step="0.01"
     oninput="setBright(this.value)">
 
 </div>
 
 <script>
 
-/* ===== カウンター（簡略） ===== */
-const val={h1:0,r1:0,s1:0};
-const max={h1:12,r1:10,s1:5};
+/* ===== 背景 ===== */
+const backgrounds=[
+"https://images.unsplash.com/photo-1446776811953-b23d57bd21aa",
+"https://images.unsplash.com/photo-1451187580459-43490279c0fa",
+"https://images.unsplash.com/photo-1462331940025-496dfbfc7564",
+"https://images.unsplash.com/photo-1473929733910-ef9d7cc40c36"
+];
 
-function updateCounter(){
+function randomBg(){
+  const url=backgrounds[Math.floor(Math.random()*backgrounds.length)];
+  document.body.style.backgroundImage=`url('${url}')`;
+}
 
+/* ===== カウンター ===== */
+const max={v1:12,v2:10,v3:5};
+const val={v1:0,v2:0,v3:0};
+
+function add(k,m){
+  if(val[k]<m) val[k]++;
+  update();
+}
+
+function sub(k){
+  if(val[k]>0) val[k]--;
+  update();
+}
+
+function update(){
   for(let k in val){
     const el=document.getElementById(k);
+    el.innerText=val[k];
 
-    el.classList.remove("max");
+    const card=el.parentElement;
 
-    if(val[k]>=max[k]){
-      el.classList.add("max");
-    }
+    if(val[k]>=max[k]) card.classList.add("max");
+    else card.classList.remove("max");
   }
 }
 
-/* ===== タイマー ===== */
+/* ===== タイマー（毎時ループ） ===== */
 const events=[
  {name:"重力開始",m:22,s:30},
  {name:"スカイリッパー開始",m:37,s:30},
@@ -233,18 +263,23 @@ const events=[
  {name:"スカイリッパー終了",m:57,s:30}
 ];
 
+function next(m,s){
+  const now=new Date();
+  const t=new Date();
+  t.setHours(now.getHours(),m,s,0);
+  if(now>t) t.setHours(now.getHours()+1);
+  return t;
+}
+
 function calc(){
 
   const now=new Date();
 
   let list=events.map(e=>{
 
-    let t=new Date();
-    t.setHours(now.getHours(),e.m,e.s,0);
+    const t=next(e.m,e.s);
 
-    if(now>t) t.setDate(t.getDate()+1);
-
-    let diff=t-now;
+    const diff=t-now;
 
     return{
       name:e.name,
@@ -265,18 +300,14 @@ function render(list){
 
   list.forEach((e,i)=>{
 
-    let m=Math.floor(e.sec/60);
-    let s=e.sec%60;
+    const m=Math.floor(e.sec/60);
+    const s=e.sec%60;
 
-    let div=document.createElement("div");
+    const div=document.createElement("div");
     div.className="card";
 
     if(i===0) div.classList.add("big");
-
-    // アラート（波紋強化）
-    if(e.sec<120){
-      div.classList.add("hot");
-    }
+    if(e.sec<120) div.classList.add("hot");
 
     div.innerHTML=`
       <div class="ripple"></div>
