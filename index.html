@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Theme Dashboard</title>
+<title>Dashboard Settings UI</title>
 
 <style>
 body {
@@ -22,9 +22,9 @@ body::before {
   inset: 0;
   background: var(--overlay, rgba(10,12,18,0.75));
   z-index: -1;
-  transition: 0.4s;
 }
 
+/* カード */
 .container {
   padding: 20px;
 }
@@ -36,28 +36,55 @@ body::before {
   margin-bottom: 10px;
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,0.08);
-  transition: 0.4s;
 }
 
-/* テーマパネル */
+/* ===== 設定ボタン ===== */
+.settings-btn {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* ===== 設定パネル ===== */
 .panel {
   position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.6);
+  right: 15px;
+  bottom: 60px;
+  width: 220px;
+  background: rgba(0,0,0,0.85);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
   padding: 10px;
-  border-radius: 10px;
-  display: flex;
+  display: none;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
+}
+
+.panel.show {
+  display: flex;
 }
 
 button {
-  cursor: pointer;
-  border: none;
   padding: 6px;
+  border: none;
   border-radius: 6px;
+  cursor: pointer;
   color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.section-title {
+  font-size: 12px;
+  opacity: 0.7;
 }
 </style>
 </head>
@@ -69,16 +96,22 @@ button {
   <div class="card">スカイリッパー：05:10</div>
 </div>
 
-<!-- テーマUI -->
-<div class="panel">
+<!-- 設定ボタン -->
+<div class="settings-btn" onclick="togglePanel()">⚙ 設定</div>
+
+<!-- 設定パネル -->
+<div class="panel" id="panel">
+
+  <div class="section-title">テーマ</div>
   <button onclick="setTheme('dark')">Dark</button>
   <button onclick="setTheme('cyber')">Cyber</button>
   <button onclick="setTheme('nature')">Nature</button>
+
 </div>
 
 <script>
 
-// ===== テーマ定義 =====
+// ===== テーマ =====
 const themes = {
 
   dark: {
@@ -100,18 +133,20 @@ const themes = {
   }
 };
 
+// ===== パネル開閉 =====
+function togglePanel(){
+  document.getElementById("panel").classList.toggle("show");
+}
+
 // ===== テーマ適用 =====
 function setTheme(name){
 
   const t = themes[name];
 
-  if(!t) return;
-
   if(t.bg){
     document.body.style.backgroundImage = `url('${t.bg}')`;
   } else {
     document.body.style.backgroundImage = "none";
-    document.body.style.backgroundColor = "#0d0f14";
   }
 
   document.documentElement.style.setProperty("--overlay", t.overlay);
@@ -121,8 +156,7 @@ function setTheme(name){
 }
 
 // ===== 復元 =====
-const saved = localStorage.getItem("theme") || "dark";
-setTheme(saved);
+setTheme(localStorage.getItem("theme") || "dark");
 
 </script>
 
