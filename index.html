@@ -1,72 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>ワンスヒューマンタイマー</title>
-
-<style>
-body{
-    background:#111;
-    color:#fff;
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-    text-align:center;
-    margin:0;
-    padding:20px;
-}
-
-h1{
-    margin-bottom:30px;
-}
-
-.card{
-    background:#1d1d1d;
-    border-radius:16px;
-    padding:20px;
-    margin-bottom:20px;
-    box-shadow:0 0 10px rgba(255,255,255,.08);
-}
-
-.title{
-    font-size:20px;
-    margin-bottom:10px;
-}
-
-.time{
-    font-size:42px;
-    font-weight:bold;
-}
-
-.next{
-    margin-top:10px;
-    color:#aaa;
-}
-</style>
-</head>
-
-<body>
-
-<h1>⚡ワンスヒューマンタイマー</h1>
-
-<div class="card">
-    <div class="title">重力開始まで</div>
-    <div class="time" id="gravityStart">--:--</div>
-    <div class="next" id="gravityStartNext"></div>
-</div>
-
-<div class="card">
-    <div class="title">リッパー開始まで</div>
-    <div class="time" id="ripperStart">--:--</div>
-    <div class="next" id="ripperStartNext"></div>
-</div>
-
-<div class="card">
-    <div class="title">重力終了まで</div>
-    <div class="time" id="gravityEnd">--:--</div>
-    <div class="next" id="gravityEndNext"></div>
-</div>
-
 <script>
 
 function nextMinuteTarget(targetMinute){
@@ -75,9 +6,9 @@ function nextMinuteTarget(targetMinute){
 
     let target = new Date();
 
-    target.setSeconds(0);
-    target.setMilliseconds(0);
     target.setMinutes(targetMinute);
+    target.setSeconds(30);
+    target.setMilliseconds(0);
 
     if(target <= now){
         target.setHours(target.getHours()+1);
@@ -88,9 +19,9 @@ function nextMinuteTarget(targetMinute){
 
 function formatCountdown(diff){
 
-    const total = Math.floor(diff/1000);
+    const total = Math.floor(diff / 1000);
 
-    const m = Math.floor(total/60);
+    const m = Math.floor(total / 60);
     const s = total % 60;
 
     return String(m).padStart(2,'0') +
@@ -140,7 +71,8 @@ function update(){
             "ja-JP",
             {
                 hour:'2-digit',
-                minute:'2-digit'
+                minute:'2-digit',
+                second:'2-digit'
             }
         );
 
@@ -152,7 +84,8 @@ function update(){
             "ja-JP",
             {
                 hour:'2-digit',
-                minute:'2-digit'
+                minute:'2-digit',
+                second:'2-digit'
             }
         );
 
@@ -164,7 +97,8 @@ function update(){
             "ja-JP",
             {
                 hour:'2-digit',
-                minute:'2-digit'
+                minute:'2-digit',
+                second:'2-digit'
             }
         );
 }
@@ -177,6 +111,3 @@ setInterval(
 );
 
 </script>
-
-</body>
-</html>
