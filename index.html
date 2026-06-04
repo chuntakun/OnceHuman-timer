@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Settings UI</title>
+<title>Dashboard Pro UI</title>
 
 <style>
 body {
@@ -13,24 +13,28 @@ body {
   background-position: center;
   background-attachment: fixed;
   transition: 0.4s;
+
+  /* 透明度制御用 */
+  --overlay-opacity: 0.75;
+  --card-opacity: 0.85;
 }
 
-/* オーバーレイ */
+/* 背景暗さ */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: var(--overlay, rgba(10,12,18,0.75));
+  background: rgba(10,12,18,var(--overlay-opacity));
   z-index: -1;
 }
 
-/* カード */
+/* UI */
 .container {
   padding: 20px;
 }
 
 .card {
-  background: var(--card, rgba(22,26,34,0.85));
+  background: rgba(22,26,34,var(--card-opacity));
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 10px;
@@ -44,29 +48,35 @@ body::before {
   bottom: 15px;
   right: 15px;
   background: rgba(0,0,0,0.7);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 10px 12px;
   border-radius: 10px;
+  padding: 10px;
   cursor: pointer;
 }
 
-/* ===== 設定パネル ===== */
+/* ===== スライドメニュー ===== */
 .panel {
   position: fixed;
-  right: 15px;
-  bottom: 60px;
-  width: 220px;
-  background: rgba(0,0,0,0.85);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 10px;
-  display: none;
+  top: 0;
+  right: -320px;
+  width: 280px;
+  height: 100%;
+  background: rgba(0,0,0,0.92);
+  padding: 15px;
+  transition: 0.35s;
+  display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  overflow-y: auto;
 }
 
-.panel.show {
-  display: flex;
+.panel.open {
+  right: 0;
+}
+
+.section {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.7;
 }
 
 button {
@@ -78,13 +88,9 @@ button {
   background: rgba(255,255,255,0.1);
 }
 
-button:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.section-title {
-  font-size: 12px;
-  opacity: 0.7;
+/* スライダー */
+input[type="range"] {
+  width: 100%;
 }
 </style>
 </head>
@@ -97,15 +103,27 @@ button:hover {
 </div>
 
 <!-- 設定ボタン -->
-<div class="settings-btn" onclick="togglePanel()">⚙ 設定</div>
+<div class="settings-btn" onclick="togglePanel()">⚙</div>
 
-<!-- 設定パネル -->
+<!-- スライドパネル -->
 <div class="panel" id="panel">
 
-  <div class="section-title">テーマ</div>
+  <div class="section">テーマ</div>
   <button onclick="setTheme('dark')">Dark</button>
   <button onclick="setTheme('cyber')">Cyber</button>
   <button onclick="setTheme('nature')">Nature</button>
+
+  <div class="section">背景カスタム</div>
+  <input id="bgUrl" placeholder="画像URL">
+  <button onclick="setCustomBg()">適用</button>
+
+  <div class="section">透明度（背景）</div>
+  <input type="range" min="0.3" max="0.9" step="0.01"
+    oninput="setOverlay(this.value)">
+
+  <div class="section">透明度（カード）</div>
+  <input type="range" min="0.3" max="1" step="0.01"
+    oninput="setCard(this.value)">
 
 </div>
 
@@ -113,29 +131,26 @@ button:hover {
 
 // ===== テーマ =====
 const themes = {
-
   dark: {
     bg: "",
-    overlay: "rgba(10,12,18,0.75)",
-    card: "rgba(22,26,34,0.85)"
+    overlay: 0.75,
+    card: 0.85
   },
-
   cyber: {
     bg: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b",
-    overlay: "rgba(0,0,0,0.65)",
-    card: "rgba(10,15,25,0.9)"
+    overlay: 0.6,
+    card: 0.9
   },
-
   nature: {
     bg: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    overlay: "rgba(0,0,0,0.55)",
-    card: "rgba(20,30,20,0.85)"
+    overlay: 0.55,
+    card: 0.8
   }
 };
 
-// ===== パネル開閉 =====
+// ===== パネル =====
 function togglePanel(){
-  document.getElementById("panel").classList.toggle("show");
+  document.getElementById("panel").classList.toggle("open");
 }
 
 // ===== テーマ適用 =====
@@ -149,14 +164,48 @@ function setTheme(name){
     document.body.style.backgroundImage = "none";
   }
 
-  document.documentElement.style.setProperty("--overlay", t.overlay);
-  document.documentElement.style.setProperty("--card", t.card);
+  setOverlay(t.overlay);
+  setCard(t.card);
 
   localStorage.setItem("theme", name);
 }
 
+// ===== 背景カスタム =====
+function setCustomBg(){
+  const url = document.getElementById("bgUrl").value;
+  document.body.style.backgroundImage = `url('${url}')`;
+  localStorage.setItem("bg", url);
+}
+
+// ===== 透明度 =====
+function setOverlay(v){
+  document.documentElement.style.setProperty("--overlay-opacity", v);
+  localStorage.setItem("overlay", v);
+}
+
+function setCard(v){
+  document.documentElement.style.setProperty("--card-opacity", v);
+  localStorage.setItem("card", v);
+}
+
 // ===== 復元 =====
-setTheme(localStorage.getItem("theme") || "dark");
+(function init(){
+
+  const theme = localStorage.getItem("theme") || "dark";
+  setTheme(theme);
+
+  const bg = localStorage.getItem("bg");
+  if(bg){
+    document.body.style.backgroundImage = `url('${bg}')`;
+  }
+
+  const overlay = localStorage.getItem("overlay");
+  if(overlay) setOverlay(overlay);
+
+  const card = localStorage.getItem("card");
+  if(card) setCard(card);
+
+})();
 
 </script>
 
