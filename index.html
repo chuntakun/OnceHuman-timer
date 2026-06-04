@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Once Human Dashboard</title>
+<title>HUD Dashboard</title>
 
 <style>
 body {
@@ -26,9 +26,15 @@ body::before {
   z-index: -1;
 }
 
-/* 全体 */
+/* レイアウト（左右2分割） */
 .container {
+  display: flex;
+  gap: 10px;
   padding: 20px;
+}
+
+.col {
+  flex: 1;
 }
 
 /* カード */
@@ -38,15 +44,12 @@ body::before {
   padding: 14px;
   margin-bottom: 10px;
   border: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   position: relative;
   overflow: hidden;
 }
 
-/* ===== 波紋（タイマー専用） ===== */
-.timer-card .ripple {
+/* 波紋 */
+.ripple {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -55,24 +58,16 @@ body::before {
   background: rgba(255,255,255,0.08);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  animation: ripple 4s ease-out infinite;
+  animation: ripple 4s infinite;
   z-index: 1;
 }
 
 @keyframes ripple {
-  0% {
-    width: 10px;
-    height: 10px;
-    opacity: 0.4;
-  }
-  100% {
-    width: 420px;
-    height: 420px;
-    opacity: 0;
-  }
+  0% { width:10px;height:10px;opacity:.4; }
+  100% { width:420px;height:420px;opacity:0; }
 }
 
-/* 中身を前面 */
+/* 内容 */
 .content {
   position: relative;
   z-index: 2;
@@ -88,7 +83,29 @@ button {
   color: #fff;
 }
 
-/* 設定ボタン */
+/* MAX演出 */
+.max {
+  border: 1px solid #facc15;
+  box-shadow: 0 0 15px rgba(250,204,21,0.7);
+  animation: glow 1.5s infinite;
+}
+
+@keyframes glow {
+  0%,100% { box-shadow:0 0 10px rgba(250,204,21,.4); }
+  50% { box-shadow:0 0 20px rgba(250,204,21,.9); }
+}
+
+.flash {
+  animation: flash 0.4s 2;
+}
+
+@keyframes flash {
+  0%{opacity:1;}
+  50%{opacity:.3;}
+  100%{opacity:1;}
+}
+
+/* 設定 */
 .settings-btn {
   position: fixed;
   right: 15px;
@@ -99,12 +116,11 @@ button {
   cursor: pointer;
 }
 
-/* パネル */
 .panel {
   position: fixed;
   top: 0;
-  right: -320px;
-  width: 280px;
+  right: -340px;
+  width: 300px;
   height: 100%;
   background: rgba(0,0,0,0.92);
   padding: 15px;
@@ -122,14 +138,21 @@ button {
   margin-top: 10px;
 }
 
-input {
+input, select {
   width: 100%;
   margin-top: 5px;
 }
 
-/* カウンター */
-.counter-btns button {
-  margin-left: 5px;
+/* カウンター配置 */
+.counter-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.small {
+  font-size: 12px;
+  opacity: 0.7;
 }
 </style>
 </head>
@@ -138,46 +161,60 @@ input {
 
 <div class="container">
 
-  <!-- タイマー -->
-  <div class="card timer-card">
-    <div class="ripple"></div>
-    <div class="content">
-      重力イベント
-      <div id="gravityTimer">--:--</div>
+  <!-- 左：タイマー -->
+  <div class="col">
+
+    <div class="card timer-card">
+      <div class="ripple"></div>
+      <div class="content">
+        重力イベント（開始）
+        <div id="gravityTimer">--:--</div>
+      </div>
     </div>
+
+    <div class="card timer-card">
+      <div class="ripple"></div>
+      <div class="content">
+        スカイリッパー（開始）
+        <div id="skyTimer">--:--</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="content">
+        重力（終了まで）
+        <div id="gravityEnd">--:--</div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="card timer-card">
-    <div class="ripple"></div>
-    <div class="content">
-      スカイリッパー
-      <div id="skyTimer">--:--</div>
-    </div>
-  </div>
+  <!-- 右：カウンター -->
+  <div class="col">
 
-  <!-- カウンター -->
-  <div class="card" id="huntingCard">
-    <div class="content">
-      空域ハンティング
-      <div id="huntingCount">0 / 12</div>
+    <div class="card" id="huntingCard">
+      <div class="content">
+        空域ハンティング
+        <div id="huntingCount">0 / 12</div>
+      </div>
+      <div>
+        <button onclick="change('hunting',1)">＋</button>
+        <button onclick="change('hunting',-1)">−</button>
+      </div>
     </div>
-    <div class="counter-btns">
-      <button onclick="change('hunting',1)">＋</button>
-      <button onclick="change('hunting',-1)">−</button>
-    </div>
-  </div>
 
-  <div class="card" id="relicCard">
-    <div class="content">
-      スカイリッパー遺物
-      <div id="relicCount">0 / 10</div>
+    <div class="card" id="relicCard">
+      <div class="content">
+        スカイリッパー遺物
+        <div id="relicCount">0 / 10</div>
+      </div>
+      <div>
+        <button onclick="change('relic',1)">＋</button>
+        <button onclick="change('relic',-1)">−</button>
+      </div>
     </div>
-    <div class="counter-btns">
-      <button onclick="change('relic',1)">＋</button>
-      <button onclick="change('relic',-1)">−</button>
-    </div>
-  </div>
 
+  </div>
 </div>
 
 <!-- 設定 -->
@@ -185,45 +222,72 @@ input {
 
 <div class="panel" id="panel">
 
+  <button onclick="togglePanel()">← 戻る</button>
+
   <div class="section">背景URL</div>
   <input id="bgUrl">
   <button onclick="setBg()">適用</button>
 
-  <div class="section">透明度（背景）</div>
+  <div class="section">ローカル画像</div>
+  <input type="file" onchange="setLocal(event)">
+
+  <div class="section">透明度</div>
   <input type="range" min="0.3" max="0.9" step="0.01"
     oninput="setOverlay(this.value)">
 
-  <div class="section">透明度（カード）</div>
   <input type="range" min="0.3" max="1" step="0.01"
     oninput="setCard(this.value)">
+
+  <div class="section">プリセット</div>
+  <select onchange="loadPreset(this.value)" id="presetSelect"></select>
+  <button onclick="savePreset()">保存</button>
+  <button onclick="createPreset()">新規</button>
 
 </div>
 
 <script>
 
-/* ======================
-   カウンター
-====================== */
+/* ===== 状態 ===== */
+let state = {hunting:0,relic:0};
+const max = {hunting:12,relic:10};
 
-let state = {
-  hunting: 0,
-  relic: 0
-};
+let presets = {};
+let current = "default";
 
-const max = {
-  hunting: 12,
-  relic: 10
-};
+/* ===== init ===== */
+(function init(){
 
-function change(type, v){
+  const s = localStorage.getItem("state");
+  if(s) state = JSON.parse(s);
 
-  state[type] += v;
+  const p = localStorage.getItem("presets");
 
-  if(state[type] < 0) state[type] = 0;
-  if(state[type] > max[type]) state[type] = max[type];
+  presets = p ? JSON.parse(p) : {
+    default:{
+      state:{hunting:0,relic:0},
+      overlay:0.75,
+      card:0.85,
+      bg:""
+    }
+  };
+
+  refreshPresetUI();
+  render();
+
+})();
+
+/* ===== カウンター ===== */
+function change(type,v){
+
+  state[type]+=v;
+
+  if(state[type]<0) state[type]=0;
+  if(state[type]>max[type]) state[type]=max[type];
 
   render();
   save();
+
+  flash(type);
 }
 
 function render(){
@@ -233,85 +297,171 @@ function render(){
 
   document.getElementById("relicCount").innerText =
     `${state.relic} / 10`;
+
+  updateMax("hunting",state.hunting,12);
+  updateMax("relic",state.relic,10);
 }
 
-/* ======================
-   タイマー
-====================== */
+function updateMax(type,val,maxv){
 
+  const el = document.getElementById(type+"Card");
+
+  el.classList.remove("max");
+
+  if(val===maxv){
+    el.classList.add("max");
+  }
+}
+
+function flash(type){
+
+  const el = document.getElementById(type+"Card");
+
+  el.classList.add("flash");
+
+  setTimeout(()=>el.classList.remove("flash"),400);
+}
+
+/* ===== タイマー ===== */
 const events = {
-  gravity: { m: 22, s: 30 },
-  sky: { m: 37, s: 30 }
+  gravity:{m:22,s:30},
+  sky:{m:37,s:30}
 };
 
 function updateTimer(){
 
-  const now = new Date();
+  const now=new Date();
 
   Object.keys(events).forEach(k=>{
 
-    const e = events[k];
+    const e=events[k];
 
-    const target = new Date();
-    target.setHours(now.getHours(), e.m, e.s, 0);
+    const t=new Date();
+    t.setHours(now.getHours(),e.m,e.s,0);
 
-    if(now > target){
-      target.setDate(target.getDate()+1);
-    }
+    if(now>t) t.setDate(t.getDate()+1);
 
-    const diff = Math.floor((target-now)/1000);
+    const d=Math.floor((t-now)/1000);
 
-    const m = Math.floor(diff/60);
-    const s = diff%60;
+    const m=Math.floor(d/60);
+    const s=d%60;
 
-    const el = document.getElementById(k+"Timer");
+    const el=document.getElementById(k+"Timer");
 
-    if(el){
-      el.innerText = `${m}:${s.toString().padStart(2,"0")}`;
-    }
+    if(el) el.innerText=`${m}:${s.toString().padStart(2,"0")}`;
   });
+
+  // 終了まで（重力）
+  const now2=new Date();
+  const end=new Date();
+  end.setHours(now2.getHours(),59,59,0);
+
+  if(now2>end) end.setDate(end.getDate()+1);
+
+  const diff=Math.floor((end-now2)/1000);
+  document.getElementById("gravityEnd").innerText =
+    `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,"0")}`;
 }
 
 setInterval(updateTimer,1000);
 updateTimer();
 
-/* ======================
-   設定
-====================== */
-
+/* ===== 設定 ===== */
 function togglePanel(){
   document.getElementById("panel").classList.toggle("open");
 }
 
 function setBg(){
-  const url = document.getElementById("bgUrl").value;
-  document.body.style.backgroundImage = `url('${url}')`;
+  const u=document.getElementById("bgUrl").value;
+  document.body.style.backgroundImage=`url('${u}')`;
+}
+
+function setLocal(e){
+  const f=e.target.files[0];
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.body.style.backgroundImage=`url('${ev.target.result}')`;
+  };
+  r.readAsDataURL(f);
 }
 
 function setOverlay(v){
-  document.documentElement.style.setProperty("--overlay-opacity", v);
+  document.documentElement.style.setProperty("--overlay-opacity",v);
 }
 
 function setCard(v){
-  document.documentElement.style.setProperty("--card-opacity", v);
+  document.documentElement.style.setProperty("--card-opacity",v);
 }
 
-/* ======================
-   保存
-====================== */
+/* ===== プリセット ===== */
+function savePreset(){
 
-function save(){
-  localStorage.setItem("state", JSON.stringify(state));
+  presets[current]={
+    state,
+    overlay:getComputedStyle(document.documentElement)
+      .getPropertyValue("--overlay-opacity"),
+    card:getComputedStyle(document.documentElement)
+      .getPropertyValue("--card-opacity"),
+    bg:document.body.style.backgroundImage
+  };
+
+  localStorage.setItem("presets",JSON.stringify(presets));
 }
 
-(function init(){
+function createPreset(){
 
-  const s = localStorage.getItem("state");
-  if(s) state = JSON.parse(s);
+  const n=prompt("名前");
+  if(!n)return;
 
+  presets[n]={
+    state:{hunting:0,relic:0},
+    overlay:0.75,
+    card:0.85,
+    bg:""
+  };
+
+  current=n;
+  refreshPresetUI();
+}
+
+function loadPreset(n){
+
+  const p=presets[n];
+  if(!p)return;
+
+  current=n;
+  state=p.state;
+
+  document.documentElement.style.setProperty("--overlay-opacity",p.overlay);
+  document.documentElement.style.setProperty("--card-opacity",p.card);
+
+  if(p.bg) document.body.style.backgroundImage=p.bg;
+
+  refreshPresetUI();
   render();
+}
 
-})();
+function refreshPresetUI(){
+
+  const sel=document.getElementById("presetSelect");
+  sel.innerHTML="";
+
+  Object.keys(presets).forEach(k=>{
+
+    const o=document.createElement("option");
+    o.value=k;
+    o.textContent=k;
+    sel.appendChild(o);
+
+  });
+
+  sel.value=current;
+}
+
+/* ===== 保存 ===== */
+function save(){
+  localStorage.setItem("state",JSON.stringify(state));
+}
 
 </script>
 
