@@ -2,157 +2,128 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>HUD Dashboard</title>
+<title>Once Human HUD</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: system-ui;
-  color: #fff;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+body{
+  margin:0;
+  font-family:system-ui;
+  color:#fff;
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
 
-  --overlay-opacity: 0.75;
-  --card-opacity: 0.85;
+  --overlay:0.75;
+  --brightness:1;
 }
 
-/* 背景暗さ */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(10,12,18,var(--overlay-opacity));
-  z-index: -1;
+/* 背景 */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,var(--overlay));
+  z-index:-1;
+  filter:brightness(var(--brightness));
 }
 
-/* レイアウト（左右2分割） */
-.container {
-  display: flex;
-  gap: 10px;
-  padding: 20px;
-}
-
-.col {
-  flex: 1;
+/* レイアウト */
+.container{
+  display:flex;
+  gap:12px;
+  padding:18px;
 }
 
 /* カード */
-.card {
-  background: rgba(22,26,34,var(--card-opacity));
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  border: 1px solid rgba(255,255,255,0.08);
-  position: relative;
-  overflow: hidden;
+.card{
+  background:rgba(20,24,32,0.85);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:10px;
+  position:relative;
+  overflow:hidden;
 }
 
 /* 波紋 */
-.ripple {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: ripple 4s infinite;
-  z-index: 1;
+.ripple{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:10px;
+  height:10px;
+  background:rgba(255,255,255,0.08);
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  animation:ripple 4s infinite;
 }
 
-@keyframes ripple {
-  0% { width:10px;height:10px;opacity:.4; }
-  100% { width:420px;height:420px;opacity:0; }
+@keyframes ripple{
+  0%{width:10px;height:10px;opacity:.4}
+  100%{width:450px;height:450px;opacity:0}
 }
 
-/* 内容 */
-.content {
-  position: relative;
-  z-index: 2;
+/* タイマー強調 */
+.big{
+  transform:scale(1.05);
+  border:1px solid #ffd700;
 }
 
-/* ボタン */
-button {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
+/* カウンターMAX */
+.max{
+  box-shadow:0 0 18px rgba(255,215,0,0.6);
+  border:1px solid #ffd700;
+  animation:glow 1.5s infinite;
 }
 
-/* MAX演出 */
-.max {
-  border: 1px solid #facc15;
-  box-shadow: 0 0 15px rgba(250,204,21,0.7);
-  animation: glow 1.5s infinite;
+@keyframes glow{
+  0%,100%{box-shadow:0 0 10px rgba(255,215,0,.3)}
+  50%{box-shadow:0 0 20px rgba(255,215,0,.8)}
 }
 
-@keyframes glow {
-  0%,100% { box-shadow:0 0 10px rgba(250,204,21,.4); }
-  50% { box-shadow:0 0 20px rgba(250,204,21,.9); }
+/* アラート */
+.alert{
+  animation:blink .5s infinite;
 }
 
-.flash {
-  animation: flash 0.4s 2;
-}
-
-@keyframes flash {
-  0%{opacity:1;}
-  50%{opacity:.3;}
-  100%{opacity:1;}
+@keyframes blink{
+  0%,100%{opacity:1}
+  50%{opacity:.3}
 }
 
 /* 設定 */
-.settings-btn {
-  position: fixed;
-  right: 15px;
-  bottom: 15px;
-  padding: 10px;
-  background: rgba(0,0,0,0.7);
-  border-radius: 10px;
-  cursor: pointer;
+.settings{
+  position:fixed;
+  right:15px;
+  bottom:15px;
+  padding:10px;
+  background:rgba(0,0,0,.7);
+  border-radius:10px;
+  cursor:pointer;
 }
 
-.panel {
-  position: fixed;
-  top: 0;
-  right: -340px;
-  width: 300px;
-  height: 100%;
-  background: rgba(0,0,0,0.92);
-  padding: 15px;
-  transition: 0.3s;
-  overflow-y: auto;
+.panel{
+  position:fixed;
+  top:0;
+  right:-340px;
+  width:300px;
+  height:100%;
+  background:rgba(0,0,0,.92);
+  padding:15px;
+  transition:.3s;
+  overflow:auto;
 }
 
-.panel.open {
-  right: 0;
+.panel.open{right:0}
+
+.section{
+  font-size:12px;
+  opacity:.7;
+  margin-top:10px;
 }
 
-.section {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-top: 10px;
-}
-
-input, select {
-  width: 100%;
-  margin-top: 5px;
-}
-
-/* カウンター配置 */
-.counter-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.small {
-  font-size: 12px;
-  opacity: 0.7;
+input{
+  width:100%;
+  margin-top:6px;
 }
 </style>
 </head>
@@ -161,306 +132,183 @@ input, select {
 
 <div class="container">
 
-  <!-- 左：タイマー -->
-  <div class="col">
+  <!-- タイマー -->
+  <div style="flex:1">
 
-    <div class="card timer-card">
-      <div class="ripple"></div>
-      <div class="content">
-        重力イベント（開始）
-        <div id="gravityTimer">--:--</div>
-      </div>
+    <div id="timerList"></div>
+
+  </div>
+
+  <!-- カウンター -->
+  <div style="flex:1">
+
+    <div class="card" id="hunting">
+      空域ハンティング <span id="h1">0</span>/12
+      <button onclick="add('h1',12)">＋</button>
+      <button onclick="sub('h1')">−</button>
     </div>
 
-    <div class="card timer-card">
-      <div class="ripple"></div>
-      <div class="content">
-        スカイリッパー（開始）
-        <div id="skyTimer">--:--</div>
-      </div>
+    <div class="card" id="relic">
+      スカイリッパー遺物 <span id="r1">0</span>/10
+      <button onclick="add('r1',10)">＋</button>
+      <button onclick="sub('r1')">−</button>
     </div>
 
-    <div class="card">
-      <div class="content">
-        重力（終了まで）
-        <div id="gravityEnd">--:--</div>
-      </div>
+    <div class="card" id="star">
+      スターコーリング <span id="s1">0</span>/5
+      <button onclick="add('s1',5)">＋</button>
+      <button onclick="sub('s1')">−</button>
     </div>
 
   </div>
 
-  <!-- 右：カウンター -->
-  <div class="col">
-
-    <div class="card" id="huntingCard">
-      <div class="content">
-        空域ハンティング
-        <div id="huntingCount">0 / 12</div>
-      </div>
-      <div>
-        <button onclick="change('hunting',1)">＋</button>
-        <button onclick="change('hunting',-1)">−</button>
-      </div>
-    </div>
-
-    <div class="card" id="relicCard">
-      <div class="content">
-        スカイリッパー遺物
-        <div id="relicCount">0 / 10</div>
-      </div>
-      <div>
-        <button onclick="change('relic',1)">＋</button>
-        <button onclick="change('relic',-1)">−</button>
-      </div>
-    </div>
-
-  </div>
 </div>
 
 <!-- 設定 -->
-<div class="settings-btn" onclick="togglePanel()">⚙</div>
+<div class="settings" onclick="toggle()">⚙</div>
 
 <div class="panel" id="panel">
 
-  <button onclick="togglePanel()">← 戻る</button>
+  <button onclick="toggle()">← 戻る</button>
 
   <div class="section">背景URL</div>
-  <input id="bgUrl">
+  <input id="bg">
   <button onclick="setBg()">適用</button>
 
-  <div class="section">ローカル画像</div>
-  <input type="file" onchange="setLocal(event)">
+  <div class="section">ローカル背景</div>
+  <input type="file" onchange="local(event)">
 
   <div class="section">透明度</div>
   <input type="range" min="0.3" max="0.9" step="0.01"
-    oninput="setOverlay(this.value)">
+    oninput="setOpacity(this.value)">
 
-  <input type="range" min="0.3" max="1" step="0.01"
-    oninput="setCard(this.value)">
-
-  <div class="section">プリセット</div>
-  <select onchange="loadPreset(this.value)" id="presetSelect"></select>
-  <button onclick="savePreset()">保存</button>
-  <button onclick="createPreset()">新規</button>
+  <div class="section">明るさ</div>
+  <input type="range" min="0.5" max="1.5" step="0.01"
+    oninput="setBright(this.value)">
 
 </div>
 
 <script>
 
-/* ===== 状態 ===== */
-let state = {hunting:0,relic:0};
-const max = {hunting:12,relic:10};
-
-let presets = {};
-let current = "default";
-
-/* ===== init ===== */
-(function init(){
-
-  const s = localStorage.getItem("state");
-  if(s) state = JSON.parse(s);
-
-  const p = localStorage.getItem("presets");
-
-  presets = p ? JSON.parse(p) : {
-    default:{
-      state:{hunting:0,relic:0},
-      overlay:0.75,
-      card:0.85,
-      bg:""
-    }
-  };
-
-  refreshPresetUI();
-  render();
-
-})();
-
 /* ===== カウンター ===== */
-function change(type,v){
+const max={h1:12,r1:10,s1:5};
+const val={h1:0,r1:0,s1:0};
 
-  state[type]+=v;
-
-  if(state[type]<0) state[type]=0;
-  if(state[type]>max[type]) state[type]=max[type];
-
-  render();
-  save();
-
-  flash(type);
+function add(k,m){
+  if(val[k]<m) val[k]++;
+  update();
 }
 
-function render(){
-
-  document.getElementById("huntingCount").innerText =
-    `${state.hunting} / 12`;
-
-  document.getElementById("relicCount").innerText =
-    `${state.relic} / 10`;
-
-  updateMax("hunting",state.hunting,12);
-  updateMax("relic",state.relic,10);
+function sub(k){
+  if(val[k]>0) val[k]--;
+  update();
 }
 
-function updateMax(type,val,maxv){
+function update(){
 
-  const el = document.getElementById(type+"Card");
+  for(let k in val){
 
-  el.classList.remove("max");
+    const el=document.getElementById(k);
+    const card=el.parentElement;
 
-  if(val===maxv){
-    el.classList.add("max");
+    el.innerText=val[k];
+
+    if(val[k]==max[k]){
+      card.classList.add("max");
+    }else{
+      card.classList.remove("max");
+    }
   }
 }
 
-function flash(type){
-
-  const el = document.getElementById(type+"Card");
-
-  el.classList.add("flash");
-
-  setTimeout(()=>el.classList.remove("flash"),400);
-}
-
 /* ===== タイマー ===== */
-const events = {
-  gravity:{m:22,s:30},
-  sky:{m:37,s:30}
-};
+const events=[
+ {name:"重力開始",m:22,s:30},
+ {name:"スカイリッパー開始",m:37,s:30},
+ {name:"重力終了",m:52,s:30},
+ {name:"スカイリッパー終了",m:57,s:30}
+];
 
-function updateTimer(){
-
+function calc(){
   const now=new Date();
 
-  Object.keys(events).forEach(k=>{
-
-    const e=events[k];
-
-    const t=new Date();
+  let list=events.map(e=>{
+    let t=new Date();
     t.setHours(now.getHours(),e.m,e.s,0);
-
     if(now>t) t.setDate(t.getDate()+1);
 
-    const d=Math.floor((t-now)/1000);
+    let diff=t-now;
 
-    const m=Math.floor(d/60);
-    const s=d%60;
-
-    const el=document.getElementById(k+"Timer");
-
-    if(el) el.innerText=`${m}:${s.toString().padStart(2,"0")}`;
+    return {
+      name:e.name,
+      diff,
+      sec:Math.floor(diff/1000)
+    };
   });
 
-  // 終了まで（重力）
-  const now2=new Date();
-  const end=new Date();
-  end.setHours(now2.getHours(),59,59,0);
+  list.sort((a,b)=>a.diff-b.diff);
 
-  if(now2>end) end.setDate(end.getDate()+1);
-
-  const diff=Math.floor((end-now2)/1000);
-  document.getElementById("gravityEnd").innerText =
-    `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,"0")}`;
+  render(list);
 }
 
-setInterval(updateTimer,1000);
-updateTimer();
+function render(list){
+
+  const box=document.getElementById("timerList");
+  box.innerHTML="";
+
+  list.forEach((e,i)=>{
+
+    let m=Math.floor(e.sec/60);
+    let s=e.sec%60;
+
+    let div=document.createElement("div");
+    div.className="card";
+
+    if(i===0) div.classList.add("big");
+
+    if(e.sec<60) div.classList.add("alert");
+
+    div.innerHTML=`
+      <div class="ripple"></div>
+      <div>
+        ${e.name}
+        <div>${m}:${s.toString().padStart(2,"0")}</div>
+      </div>
+    `;
+
+    box.appendChild(div);
+  });
+}
+
+setInterval(calc,1000);
+calc();
 
 /* ===== 設定 ===== */
-function togglePanel(){
+function toggle(){
   document.getElementById("panel").classList.toggle("open");
 }
 
 function setBg(){
-  const u=document.getElementById("bgUrl").value;
-  document.body.style.backgroundImage=`url('${u}')`;
+  document.body.style.backgroundImage=
+    `url('${document.getElementById("bg").value}')`;
 }
 
-function setLocal(e){
+function local(e){
   const f=e.target.files[0];
   const r=new FileReader();
   r.onload=ev=>{
-    document.body.style.backgroundImage=`url('${ev.target.result}')`;
+    document.body.style.backgroundImage=
+      `url('${ev.target.result}')`;
   };
   r.readAsDataURL(f);
 }
 
-function setOverlay(v){
-  document.documentElement.style.setProperty("--overlay-opacity",v);
+function setOpacity(v){
+  document.documentElement.style.setProperty("--overlay",v);
 }
 
-function setCard(v){
-  document.documentElement.style.setProperty("--card-opacity",v);
-}
-
-/* ===== プリセット ===== */
-function savePreset(){
-
-  presets[current]={
-    state,
-    overlay:getComputedStyle(document.documentElement)
-      .getPropertyValue("--overlay-opacity"),
-    card:getComputedStyle(document.documentElement)
-      .getPropertyValue("--card-opacity"),
-    bg:document.body.style.backgroundImage
-  };
-
-  localStorage.setItem("presets",JSON.stringify(presets));
-}
-
-function createPreset(){
-
-  const n=prompt("名前");
-  if(!n)return;
-
-  presets[n]={
-    state:{hunting:0,relic:0},
-    overlay:0.75,
-    card:0.85,
-    bg:""
-  };
-
-  current=n;
-  refreshPresetUI();
-}
-
-function loadPreset(n){
-
-  const p=presets[n];
-  if(!p)return;
-
-  current=n;
-  state=p.state;
-
-  document.documentElement.style.setProperty("--overlay-opacity",p.overlay);
-  document.documentElement.style.setProperty("--card-opacity",p.card);
-
-  if(p.bg) document.body.style.backgroundImage=p.bg;
-
-  refreshPresetUI();
-  render();
-}
-
-function refreshPresetUI(){
-
-  const sel=document.getElementById("presetSelect");
-  sel.innerHTML="";
-
-  Object.keys(presets).forEach(k=>{
-
-    const o=document.createElement("option");
-    o.value=k;
-    o.textContent=k;
-    sel.appendChild(o);
-
-  });
-
-  sel.value=current;
-}
-
-/* ===== 保存 ===== */
-function save(){
-  localStorage.setItem("state",JSON.stringify(state));
+function setBright(v){
+  document.documentElement.style.setProperty("--brightness",v);
 }
 
 </script>
