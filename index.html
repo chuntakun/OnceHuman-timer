@@ -2,164 +2,107 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Once Human Clock Monitor</title>
+<title>Dashboard</title>
 
 <style>
 body {
-  background:#0f0f0f;
-  color:#fff;
-  font-family:sans-serif;
+  margin: 0;
+  font-family: system-ui;
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
+/* 暗いオーバーレイ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,18,0.75);
+  z-index: -1;
+}
+
+/* UI */
 .container {
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  padding:20px;
+  padding: 20px;
 }
 
 .card {
-  background:#1c1c1c;
-  padding:15px;
-  border-radius:12px;
-  font-size:20px;
-  border:1px solid #333;
-  transition:0.3s;
+  background: rgba(22,26,34,0.85);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
-.warning {
-  border-color: orange;
-  box-shadow: 0 0 10px orange;
+/* 背景設定パネル */
+.panel {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
 }
 
-.urgent {
-  border-color: red;
-  box-shadow: 0 0 20px red;
-  animation: blink 0.5s infinite alternate;
-}
-
-@keyframes blink {
-  from { opacity:1; }
-  to { opacity:0.4; }
+input {
+  width: 200px;
+  margin-top: 5px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container" id="app"></div>
+<div class="container">
+  <div class="card">重力イベント：03:21</div>
+  <div class="card">スカイリッパー：05:10</div>
+</div>
+
+<!-- 背景設定UI -->
+<div class="panel">
+  <div>背景URL</div>
+  <input id="bgUrl" placeholder="画像URLを貼る">
+  <button onclick="setBgUrl()">適用</button>
+
+  <hr style="opacity:0.2">
+
+  <div>ローカル画像</div>
+  <input type="file" accept="image/*" onchange="setLocalBg(event)">
+</div>
 
 <script>
 
-// ===== Discord =====
-const DISCORD_WEBHOOK ="https://discord.com/api/webhooks/1511904856049455165/n0UOtna-2yTF2STQflfuOVkeMf_RjOCG_Gwune4YJYdxKz_P60g5jIhfrPg0yczLba02";
-
-// ===== 通知 =====
-if ("Notification" in window && Notification.permission !== "granted") {
-  Notification.requestPermission();
-}
-
-// ===== 次発生時刻計算 =====
-function nextTime(hourMinSec){
-
-  const now = new Date();
-
-  const [h,m,s] = hourMinSec;
-
-  let target = new Date(now);
-  target.setMinutes(m);
-  target.setSeconds(s);
-  target.setHours(now.getHours());
-
-  // すでに過ぎてたら次の時間へ
-  if(target <= now){
-    target.setHours(target.getHours() + 1);
-  }
-
-  return target.getTime();
-}
-
-// ===== イベント定義（固定時計）=====
-let events = [
-  { id:"gravity_start", name:"重力開始", time:[0,22,30] },
-  { id:"skyripper", name:"スカイリッパー開始", time:[0,37,30] },
-  { id:"gravity_end", name:"重力終了", time:[0,52,30] }
-];
-
-// 初期化
-const app = document.getElementById("app");
-
-events.forEach(e => {
-
-  e.next = nextTime(e.time);
-
-  const card = document.createElement("div");
-  card.className = "card";
-  card.innerHTML = `${e.name}：<span>--:--</span>`;
-  e.el = card;
-
-  app.appendChild(card);
-});
-
-// ===== Discord =====
-function sendDiscord(msg){
-  if(!DISCORD_WEBHOOK || DISCORD_WEBHOOK.includes("ここ")) return;
-
-  fetch(DISCORD_WEBHOOK,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({content:msg})
-  });
-}
-
-// ===== 通知 =====
-function notify(name){
-  if(Notification.permission === "granted"){
-    new Notification(`${name} 発生`);
+// ===== URL背景 =====
+function setBgUrl(){
+  const url = document.getElementById("bgUrl").value;
+  if(url){
+    document.body.style.backgroundImage = `url('${url}')`;
+    localStorage.setItem("bg", url);
   }
 }
 
-// ===== 更新 =====
-function update(){
+// ===== ローカル画像 =====
+function setLocalBg(event){
+  const file = event.target.files[0];
+  const reader = new FileReader();
 
-  const now = Date.now();
+  reader.onload = function(e){
+    document.body.style.backgroundImage = `url('${e.target.result}')`;
+    localStorage.setItem("bg", e.target.result);
+  };
 
-  events.forEach(e => {
-
-    let remain = Math.floor((e.next - now)/1000);
-
-    const el = e.el;
-
-    if(remain <= 0){
-
-      notify(e.name);
-      sendDiscord(`【発生】${e.name}`);
-
-      // 次の1時間に再セット
-      e.next = nextTime(e.time);
-
-      remain = Math.floor((e.next - now)/1000);
-    }
-
-    const m = String(Math.floor(remain/60)).padStart(2,"0");
-    const s = String(remain%60).padStart(2,"0");
-
-    el.querySelector("span").innerText = `${m}:${s}`;
-
-    el.classList.remove("warning","urgent");
-
-    if(remain <= 10){
-      el.classList.add("urgent");
-    } else if(remain <= 60){
-      el.classList.add("warning");
-    }
-
-  });
-
+  reader.readAsDataURL(file);
 }
 
-setInterval(update,500);
-update();
+// ===== 復元 =====
+const saved = localStorage.getItem("bg");
+if(saved){
+  document.body.style.backgroundImage = `url('${saved}')`;
+}
 
 </script>
 
